@@ -93,16 +93,17 @@ export function normalizeBlocks(courseId, blocks) {
   return models;
 }
 
-export async function getCourseBlocks(courseId) {
+export async function getCourseBlocks(courseId, url) {
   const authenticatedUser = getAuthenticatedUser();
-  const url = new URL(`${getConfig().LMS_BASE_URL}/api/courses/v2/blocks/`);
+  // const url = new URL(`${getConfig().LMS_BASE_URL}/api/courses/v2/blocks/`);
   url.searchParams.append('course_id', courseId);
   url.searchParams.append('username', authenticatedUser ? authenticatedUser.username : '');
   url.searchParams.append('depth', 3);
   url.searchParams.append('requested_fields', 'children,effort_activities,effort_time,show_gated_sections,graded,special_exam_info,has_scheduled_content');
 
-  const { data } = await getAuthenticatedHttpClient().get(url.href, {});
-  return normalizeBlocks(courseId, data.blocks);
+  const response = await getAuthenticatedHttpClient().get(url.href, {});
+  // console.log(response);
+  return normalizeBlocks(courseId, response.data.blocks);
 }
 
 function normalizeTabUrls(id, tabs) {

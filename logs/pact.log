@@ -1,0 +1,26 @@
+I, [2021-07-02T19:10:25.924245 #24716]  INFO -- : Registered expected interaction GET /api/courses/v2/blocks/
+D, [2021-07-02T19:10:25.924688 #24716] DEBUG -- : {
+  "description": "a request to fetch course",
+  "request": {
+    "method": "GET",
+    "path": "/api/courses/v2/blocks/"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+    }
+  },
+  "metadata": null
+}
+W, [2021-07-02T19:10:25.928422 #24716]  WARN -- : Verifying - actual interactions do not match expected interactions. 
+Missing requests:
+	GET /api/courses/v2/blocks/
+
+
+
+W, [2021-07-02T19:10:25.928686 #24716]  WARN -- : Missing requests:
+	GET /api/courses/v2/blocks/
+
+
+
+I, [2021-07-02T19:10:25.974160 #24716]  INFO -- : Cleared interactions

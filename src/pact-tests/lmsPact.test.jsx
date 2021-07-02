@@ -1,100 +1,69 @@
-import { pactWith } from 'jest-pact';
-import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
+import { Pact, Matchers } from '@pact-foundation/pact';
+import path from 'path';
+// import { getConfig } from '@edx/frontend-platform';
 // import axios from 'axios';
-// import { initializeTestStore } from '../setupTest';
-// import { getCourseBlocks } from '../courseware/data/api';
-// import { Matchers } from '@pact-foundation/pact';
+import { initializeTestStore } from '../setupTest';
+import { getCourseBlocks } from '../courseware/data/api';
 
-pactWith({ consumer: 'MyConsumer', provider: 'MyProvider' }, provider => {
-  let baseUrl;
-  // let courseId;
+const { somethingLike: like } = Matchers;
 
-  beforeEach(async () => {
-    baseUrl = provider.mockService.baseUrl;
-    // const store = await initializeTestStore({ excludeFetchSequence: true });
-    // courseId = store.getState().courseware.courseId;
+describe('Courseware Service', () => {
+  const provider = new Pact({
+    consumer: 'consumer',
+    provider: 'provider',
+    log: path.resolve(process.cwd(), 'logs', 'pact.log'),
+    dir: path.resolve(process.cwd(), 'pacts'),
+    logLevel: 'INFO',
   });
-  describe('Courseware endpoint', () => {
-    beforeEach(() => provider.addInteraction({
-      uponReceiving: 'A request to fetch course block',
-      willRespondWith: {
-        status: 400,
-        body: {
-          courseId: 'course-v1:edX+DemoX+Demo_Course_1',
-          hasScheduledContent: false,
-          title: 'Demo Course',
-          blocks: {
-            'block-v1:edX+DemoX+Demo_Course_1+type@course+block@bcdabcdabcdabcdabcdabcdabcdabcd4': {
-              type: 'course',
-              display_name: 'Demonstration Course',
-              children: [Array],
-              block_id: 'bcdabcdabcdabcdabcdabcdabcdabcd4',
-              complete: false,
-              description: null,
-              due: null,
-              graded: false,
-              icon: null,
-              showLink: true,
-              id: 'block-v1:edX+DemoX+Demo_Course_1+type@course+block@bcdabcdabcdabcdabcdabcdabcdabcd4',
-              student_view_url: 'http://localhost:18000/xblock/block-v1:edX+DemoX+Demo_Course_1+type@course+block@bcdabcdabcdabcdabcdabcdabcdabcd4',
-              legacy_web_url: 'http://localhost:18000/courses/course-v1:edX+DemoX+Demo_Course_1/jump_to/block-v1:edX+DemoX+Demo_Course_1+type@course+block@bcdabcdabcdabcdabcdabcdabcdabcd4?experience=legacy',
-            },
-            'block-v1:edX+DemoX+Demo_Course_1+type@chapter+block@bcdabcdabcdabcdabcdabcdabcdabcd3': {
-              type: 'chapter',
-              children: [Array],
-              block_id: 'bcdabcdabcdabcdabcdabcdabcdabcd3',
-              complete: false,
-              description: null,
-              due: null,
-              graded: false,
-              icon: null,
-              showLink: true,
-              display_name: 'bcdabcdabcdabcdabcdabcdabcdabcd3',
-              id: 'block-v1:edX+DemoX+Demo_Course_1+type@chapter+block@bcdabcdabcdabcdabcdabcdabcdabcd3',
-              student_view_url: 'http://localhost:18000/xblock/block-v1:edX+DemoX+Demo_Course_1+type@chapter+block@bcdabcdabcdabcdabcdabcdabcdabcd3',
-              legacy_web_url: 'http://localhost:18000/courses/course-v1:edX+DemoX+Demo_Course_1/jump_to/block-v1:edX+DemoX+Demo_Course_1+type@chapter+block@bcdabcdabcdabcdabcdabcdabcdabcd3?experience=legacy',
-            },
-            'block-v1:edX+DemoX+Demo_Course_1+type@sequential+block@bcdabcdabcdabcdabcdabcdabcdabcd2': {
-              type: 'sequential',
-              children: [Array],
-              block_id: 'bcdabcdabcdabcdabcdabcdabcdabcd2',
-              complete: false,
-              description: null,
-              due: null,
-              graded: false,
-              icon: null,
-              showLink: true,
-              display_name: 'bcdabcdabcdabcdabcdabcdabcdabcd2',
-              id: 'block-v1:edX+DemoX+Demo_Course_1+type@sequential+block@bcdabcdabcdabcdabcdabcdabcdabcd2',
-              student_view_url: 'http://localhost:18000/xblock/block-v1:edX+DemoX+Demo_Course_1+type@sequential+block@bcdabcdabcdabcdabcdabcdabcdabcd2',
-              legacy_web_url: 'http://localhost:18000/courses/course-v1:edX+DemoX+Demo_Course_1/jump_to/block-v1:edX+DemoX+Demo_Course_1+type@sequential+block@bcdabcdabcdabcdabcdabcdabcdabcd2?experience=legacy',
-            },
-            'block-v1:edX+DemoX+Demo_Course_1+type@vertical+block@bcdabcdabcdabcdabcdabcdabcdabcd1': {
-              type: 'vertical',
-              block_id: 'bcdabcdabcdabcdabcdabcdabcdabcd1',
-              complete: false,
-              description: null,
-              due: null,
-              graded: false,
-              icon: null,
-              showLink: true,
-              children: [],
-              display_name: 'bcdabcdabcdabcdabcdabcdabcdabcd1',
-              id: 'block-v1:edX+DemoX+Demo_Course_1+type@vertical+block@bcdabcdabcdabcdabcdabcdabcdabcd1',
-              student_view_url: 'http://localhost:18000/xblock/block-v1:edX+DemoX+Demo_Course_1+type@vertical+block@bcdabcdabcdabcdabcdabcdabcdabcd1',
-              legacy_web_url: 'http://localhost:18000/courses/course-v1:edX+DemoX+Demo_Course_1/jump_to/block-v1:edX+DemoX+Demo_Course_1+type@vertical+block@bcdabcdabcdabcdabcdabcdabcdabcd1?experience=legacy',
+  let port;
+  let courseId;
+  beforeAll(async () => {
+    const store = await initializeTestStore({ excludeFetchSequence: true });
+    courseId = store.getState().courseware.courseId;
+    await provider
+      .setup()
+      .then((options) => {
+        port = options.port;
+      });
+  });
+  describe('When a request for fetch course is made', () => {
+    beforeAll(async () => {
+      provider.addInteraction({
+        uponReceiving: 'a request to fetch course',
+        withRequest: {
+          method: 'GET',
+          path: '/api/courses/v2/blocks/',
+        },
+        willRespondWith: {
+          status: 200,
+          data:
+          {
+            root: 'block-v1:edX+DemoX+Demo_Course+type@course+block@course',
+            blocks: {
+              'block-v1:edX+DemoX+Demo_Course+type@course+block@course': {
+                id: 'block-v1:edX+DemoX+Demo_Course+type@course+block@course',
+                block_id: 'course',
+                lms_web_url: like('/courses/course-v1:edX+DemoX+Demo_Course/jump_to/block-v1:edX+DemoX+Demo_Course+type@course+block@course'),
+                legacy_web_url: like('/courses/course-v1:edX+DemoX+Demo_Course/jump_to/block-v1:edX+DemoX+Demo_Course+type@course+block@course?experience=legacy'),
+                student_view_url: like('/xblock/block-v1:edX+DemoX+Demo_Course+type@course+block@course'),
+                type: 'course',
+                display_name: 'Demonstration Course',
+              },
             },
           },
-          root: 'block-v1:edX+DemoX+Demo_Course_1+type@course+block@bcdabcdabcdabcdabcdabcdabcdabcd4',
         },
-      },
-      withRequest: {
-        method: 'GET',
-        path: '/api/courses/v2/blocks/',
-      },
-    }));
-    it('returns course blocks', () => getAuthenticatedHttpClient().get(`${baseUrl}/api/courses/v2/blocks/`).then(response => {
-      expect(response.title).toEqual('Demo Course');
-    }));
+      });
+    });
+    it('should return the correct data', async () => {
+      const url = new URL(`http://localhost:${port}/api/courses/v2/blocks/`);
+      // console.log(url.href);
+      // console.log(provider.mockServer.baseUrl);
+      // const response = await getAuthenticatedHttpClient().get(url.href, {});
+      const response = await getCourseBlocks(courseId, url);
+      // console.log(response);
+      expect(response).toBeTruthy();
+    });
+    afterEach(() => provider.verify());
+    afterAll(() => provider.finalize());
   });
 });
