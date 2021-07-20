@@ -36,6 +36,32 @@ function filterSequencesFromSection(sectionData, allowedSequences) {
   );
 }
 
+/**
+ * Combines the models from the Course Blocks and Learning Sequences API.
+ *
+ * For performance and long term maintainability, we want to switch as much of
+ * the Courseware MFE to use the Learning Sequences API as possible, and
+ * eventually remove calls to the Course Blocks API. However, right now, certain
+ * data still has to come form the Course Blocks API. This function is a
+ * transitional step to help build out some of the data from the new API, while
+ * falling back to the Course Blocks API for other things.
+ *
+ * Overall performance gains will not be realized until we completely remove
+ * this call to the Course Blocks API (and the need for this function).
+ *
+ * @param {*} learningSequencesModel  Normalized model from normalizeLearningSequencesData
+ * @param {*} courseBlocksModel       Normalized model from normalizeBlocks
+ */
+function mergeLearningSequencesWithCourseBlocks(learningSequencesModel, courseBlocksModel) {
+  // If there's no Learning Sequences API data yet (not active for this course),
+  // send back the course blocks model as-is.
+  if (learningSequencesModel === null) {
+    return courseBlocksModel;
+  }
+  return courseBlocksModel;
+}
+
+
 export function fetchCourse(courseId) {
   return async (dispatch) => {
     dispatch(fetchCourseRequest({ courseId }));
@@ -60,7 +86,7 @@ export function fetchCourse(courseId) {
       if (courseBlocksResult.status === 'fulfilled') {
         const {
           courses, sections, sequences, units,
-        } = courseBlocksResult.value;
+        } = mergeLearningSequencesWithCourseBlocks(learningSequencesOutlineResult.value, courseBlocksResult.value);
 
         // Filter the data we get from the Course Blocks API using the data we
         // get back from the Learning Sequences API (which knows to hide certain

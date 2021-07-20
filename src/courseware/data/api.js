@@ -95,6 +95,35 @@ export function normalizeBlocks(courseId, blocks) {
   return models;
 }
 
+// THE PLAN: To move data over piece by piece and stitch it together.
+//
+export function normalizeLearningSequencesData(learningSequencesData) {
+  const models = {
+    sections: {},
+    sequences: {},
+  };
+
+  // Sections
+  for (const section of learningSequenceData.outline.sections) {
+    models.sections[section.id] = {
+      id: section.id,
+      title: section.title,
+      sequenceIds: section.sequence_ids,
+    }
+  }
+
+  // Sequences
+  for (const [seq_id, sequence] of Object.entries(learningSequenceData.outline.sequences)) {
+    models.sequences[seq_id] = {
+      id: seq_id,
+      title: sequence.title,
+    }
+  }
+
+  return models
+}
+
+
 export async function getCourseBlocks(courseId) {
   const authenticatedUser = getAuthenticatedUser();
   const url = new URL(`${getConfig().LMS_BASE_URL}/api/courses/v2/blocks/`);
