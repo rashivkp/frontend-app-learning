@@ -95,29 +95,43 @@ export function normalizeBlocks(courseId, blocks) {
   return models;
 }
 
-// THE PLAN: To move data over piece by piece and stitch it together.
-//
 export function normalizeLearningSequencesData(learningSequencesData) {
   const models = {
+    courses: {},
     sections: {},
     sequences: {},
   };
 
+  // Course
+  let now = new Date();
+  models.courses[learningSequencesData.course_key] = {
+    id: learningSequencesData.course_key,
+    title: learningSequencesData.title,
+    sectionIds: learningSequencesData.outline.sections.map(section => section.id),
+
+    // Scan through all the sequences and look for ones that aren't accessible
+    // to us yet because the start date has not yet passed. (Some may be
+    // inaccessible because the end_date has passed.)
+    hasScheduledContent: Object.values(learningSequencesData.outline.sequences).some(seq =>
+      !seq.accessible && now < Date.parse(seq.effective_start)
+    ),
+  };
+
   // Sections
-  for (const section of learningSequenceData.outline.sections) {
+  for (const section of learningSequencesData.outline.sections) {
     models.sections[section.id] = {
       id: section.id,
       title: section.title,
       sequenceIds: section.sequence_ids,
-    }
+    };
   }
 
   // Sequences
-  for (const [seq_id, sequence] of Object.entries(learningSequenceData.outline.sequences)) {
+  for (const [seq_id, sequence] of Object.entries(learningSequencesData.outline.sequences)) {
     models.sequences[seq_id] = {
       id: seq_id,
       title: sequence.title,
-    }
+    };
   }
 
   return models
@@ -143,7 +157,7 @@ export async function getLearningSequencesOutline(courseId) {
 
   try {
     const { data } = await getAuthenticatedHttpClient().get(outlineUrl.href, {});
-    return data;
+    return normalizeLearningSequencesData(data);
   } catch (error) {
     // This is not a critical API to use at the moment. If it errors for any
     // reason, just send back a null so the higher layers know to ignore it.
