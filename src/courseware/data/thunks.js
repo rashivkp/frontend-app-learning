@@ -100,6 +100,11 @@ function mergeLearningSequencesWithCourseBlocks(learningSequencesModels, courseB
       legacyWebUrl: blocksSequence.legacyWebUrl,
       unitIds: blocksSequence.unitIds,
     };
+
+    // Add back-references to this sequence for all child units.
+    for (const childUnitId of blocksSequence.unitIds) {
+      mergedModels.units[childUnitId].sequenceId = sequenceId;
+    }
   }
 
   // List of Sections comes from Learning Sequences.
