@@ -61,8 +61,8 @@ function mergeLearningSequencesWithCourseBlocks(learningSequencesModels, courseB
   //
   // It is not at all clear to me why courses is a dict when there's only ever
   // one course, but I'm not going to make that model change right now.
-  let lsCourse = Object.values(learningSequencesModels.courses)[0];
-  let [courseBlockId, courseBlock] = Object.entries(courseBlocksModels.courses)[0];
+  const lsCourse = Object.values(learningSequencesModels.courses)[0];
+  const [courseBlockId, courseBlock] = Object.entries(courseBlocksModels.courses)[0];
 
   // The Learning Sequences API never exposes the usage key of the root course
   // block, which is used as the key here (instead of the CourseKey). It doesn't
@@ -81,14 +81,14 @@ function mergeLearningSequencesWithCourseBlocks(learningSequencesModels, courseB
     // Still pulling from Course Blocks API
     effortActivities: courseBlock.effortActivities,
     effortTime: courseBlock.effortTime,
-  }
+  };
 
   // List of Sequences comes from Learning Sequences. Course Blocks will have
   // extra sequences that we don't want to display to the user, like ones that
   // are empty because all the enclosed units are in user partition groups that
   // the user is not a part of (e.g. Verified Track).
-  for (const [sequenceId, sequence] of Object.entries(learningSequencesModels.sequences)) {
-    let blocksSequence = courseBlocksModels.sequences[sequenceId];
+  Object.entries(learningSequencesModels.sequences).forEach(([sequenceId, sequence]) => {
+    const blocksSequence = courseBlocksModels.sequences[sequenceId];
     mergedModels.sequences[sequenceId] = {
       // Learning Sequences API Data
       id: sequenceId,
@@ -102,14 +102,14 @@ function mergeLearningSequencesWithCourseBlocks(learningSequencesModels, courseB
     };
 
     // Add back-references to this sequence for all child units.
-    for (const childUnitId of blocksSequence.unitIds) {
+    blocksSequence.unitIds.forEach(childUnitId => {
       mergedModels.units[childUnitId].sequenceId = sequenceId;
-    }
-  }
+    });
+  });
 
   // List of Sections comes from Learning Sequences.
-  for (const [sectionId, section] of Object.entries(learningSequencesModels.sections)) {
-    let blocksSection = courseBlocksModels.sections[sectionId]
+  Object.entries(learningSequencesModels.sections).forEach(([sectionId, section]) => {
+    const blocksSection = courseBlocksModels.sections[sectionId];
     mergedModels.sections[sectionId] = {
       // Learning Sequences API Data
       id: sectionId,
@@ -122,10 +122,10 @@ function mergeLearningSequencesWithCourseBlocks(learningSequencesModels, courseB
       effortTime: blocksSection.effortTime,
     };
     // Add back-references to this section for all child sequences.
-    for (const childSeqId of section.sequenceIds) {
+    section.sequenceIds.forEach(childSeqId => {
       mergedModels.sequences[childSeqId].sectionId = sectionId;
-    }
-  }
+    });
+  });
 
   return mergedModels;
 }
