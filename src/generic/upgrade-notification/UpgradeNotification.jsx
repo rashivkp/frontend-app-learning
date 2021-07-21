@@ -265,10 +265,11 @@ function UpgradeNotification({
   courseId,
   offer,
   org,
+  shouldDisplayBorder,
   timeOffsetMillis,
+  upsellLinkName,
   userTimezone,
   verifiedMode,
-  shouldDisplayBorder,
 }) {
   const timezoneFormatArgs = userTimezone ? { timeZone: userTimezone } : {};
   const correctedTime = new Date(Date.now() + timeOffsetMillis);
@@ -305,7 +306,7 @@ function UpgradeNotification({
     sendTrackEvent('edx.bi.ecommerce.upsell_links_clicked', {
       ...eventProperties,
       linkCategory: 'green_upgrade',
-      linkName: 'course_home_green',
+      linkName: upsellLinkName,
       linkType: 'button',
       pageName: 'course_home',
     });
@@ -427,24 +428,25 @@ UpgradeNotification.propTypes = {
     percentage: PropTypes.number,
     code: PropTypes.string,
   }),
+  shouldDisplayBorder: PropTypes.bool,
   timeOffsetMillis: PropTypes.number,
+  upsellLinkName: PropTypes.string.isRequired,
   userTimezone: PropTypes.string,
   verifiedMode: PropTypes.shape({
     currencySymbol: PropTypes.string.isRequired,
     price: PropTypes.number.isRequired,
     upgradeUrl: PropTypes.string.isRequired,
   }),
-  shouldDisplayBorder: PropTypes.bool,
 };
 
 UpgradeNotification.defaultProps = {
   accessExpiration: null,
   contentTypeGatingEnabled: false,
   offer: null,
+  shouldDisplayBorder: null,
   timeOffsetMillis: 0,
   userTimezone: null,
   verifiedMode: null,
-  shouldDisplayBorder: null,
 };
 
 export default injectIntl(UpgradeNotification);
