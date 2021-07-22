@@ -39,11 +39,13 @@ import {
  *
  * @param {*} learningSequencesModels  Normalized model from normalizeLearningSequencesData
  * @param {*} courseBlocksModels       Normalized model from normalizeBlocks
+ * @param {bool} isMasquerading        Is Masquerading being used?
  */
-function mergeLearningSequencesWithCourseBlocks(learningSequencesModels, courseBlocksModels) {
+function mergeLearningSequencesWithCourseBlocks(learningSequencesModels, courseBlocksModels, isMasquerading) {
   // If there's no Learning Sequences API data yet (not active for this course),
-  // send back the course blocks model as-is.
-  if (learningSequencesModels === null) {
+  // send back the course blocks model as-is. Likewise, Learning Sequences
+  // doesn't currently handle masquerading properly for content groups.
+  if (isMasquerading || learningSequencesModels === null) {
     return courseBlocksModels;
   }
   const mergedModels = {
@@ -154,7 +156,11 @@ export function fetchCourse(courseId) {
       if (courseBlocksResult.status === 'fulfilled') {
         const {
           courses, sections, sequences, units,
-        } = mergeLearningSequencesWithCourseBlocks(learningSequencesOutlineResult.value, courseBlocksResult.value);
+        } = mergeLearningSequencesWithCourseBlocks(
+          learningSequencesOutlineResult.value,
+          courseBlocksResult.value,
+          courseMetadataResult.value.isMasquerading,
+        );
 
         // This updates the course with a sectionIds array from the blocks data.
         dispatch(updateModelsMap({
