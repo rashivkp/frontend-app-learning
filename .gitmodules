@@ -1,0 +1,3 @@
+[submodule "packages/frontend-lib-special-exams"]
+	path = packages/frontend-lib-special-exams
+	url = git@github.com:edx/frontend-lib-special-exams.git
